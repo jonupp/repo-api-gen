@@ -1,0 +1,1044 @@
+openapi: 3.0.3
+info:
+  title: StOP NestJS REST API
+  description: This resource describes the StOP NestJS REST API which is used by the React SPA.
+  version: 1.0.0
+
+servers:
+  - url: https://sinv-56039.rj.ost.ch:3000/api
+
+paths:
+  /register:
+    post:
+      tags:
+        - authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '200':
+          description: Successfully registered. Automatically signs in. Returns jwt in a cookie named jwt.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterResponse'
+          headers:
+            Set-Cookie:
+              schema:
+                $ref: '#/components/schemas/AuthJWTCookie'
+        '400':
+          description: 'Username already in use or password does not meet requirements.'
+
+  /login:
+    post:
+      tags:
+        - authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: 
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '200':
+          description: 'Successfully authenticated. Returns jwt in a cookie named "jwt"'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterResponse'  
+          headers:
+            Set-Cookie:
+              schema:
+                $ref: '#/components/schemas/AuthJWTCookie'
+        '401':
+          description: 'Unsuccessfully authenticated'
+
+  /loginState:
+    get:
+      tags:
+        - authentication
+      responses:
+        '200':
+          description: 'Description'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginStateResponse'
+          
+  /logout:
+    post:
+      tags: 
+        - authentication
+      responses:
+        '200':
+          description: 'Successfully logged out'
+          headers:
+            Set-Cookie:
+              schema:
+                $ref: '#/components/schemas/ClearCookie'
+        '401':
+          description: 'Requesting organizer was not logged in'
+
+  /job/{id}:
+    get:
+      tags:
+        - pricing
+      parameters:
+        - in: query
+          name: secret
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/ProfitSpotterResponse'
+                  - $ref: '#/components/schemas/StaticOptionResult'
+        '202':
+          description: 'Job is not available'
+
+
+  /option-value:
+    post:
+      tags:
+        - pricing
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OptionValueRequest'
+      responses:
+        '200':
+          description: 'Description'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobResult'
+        '400':
+          description: 'Invalid request'
+
+  /profit-spotter:
+    post:
+      tags:
+        - pricing
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProfitSpotterRequest'
+      responses:
+        '200':
+          description: 'Description'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobResult'
+        '400':
+          description: 'The symbol is not valid'
+
+  /option/{id}:
+    get:
+      tags:
+        - persistence
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: number
+            minimum: 0
+      responses:
+        '200':
+          description: Returns the option with the given id
+          content:
+            application/json:
+              schema: 
+                $ref: '#/components/schemas/OptionResponse'
+        '400':
+          description: Invalid id
+      
+  /valuation-input:
+    post:
+      tags:
+        - persistence
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: 
+              $ref: '#/components/schemas/ValuationInputRequest'
+      responses:
+        '200':
+          description: 'Returns the persisted ValuationInput'
+          content:
+            application/json:
+              schema: 
+                $ref: '#/components/schemas/ValuationInputResponse' 
+    get:
+      tags:
+        - persistence
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Returns all saved ValuationInputs for the authenticated user.
+          content:
+            application/json:
+              schema: 
+                $ref: '#/components/schemas/ValuationInputArrayResponse'
+    delete:
+      tags:
+        - persistence
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: 
+                id:
+                  type: number
+                  minimum: 0
+      responses:
+        '200':
+          description: 'Successfully deleted'
+        '400':
+          description: 'ValuationInput with this id does not exist'
+        '401':
+          description: 'Can only delete ValuationInput belonging to the authenticated user'
+
+  /valuation-output:
+    post:
+      tags:
+        - persistence
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: 
+              $ref: '#/components/schemas/ValuationOutputRequest'
+      responses:
+        '200':
+          description: 'Returns the persisted ValuationOutput'
+          content:
+            application/json:
+              schema: 
+                $ref: '#/components/schemas/ValuationOutputResponse'
+    get:
+      tags:
+        - persistence
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Returns all saved ValuationOutputs for the authenticated user.
+          content:
+            application/json:
+              schema: 
+                $ref: '#/components/schemas/ValuationOutputArrayResponse'
+    delete:
+      tags:
+        - persistence
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: 
+                id:
+                  type: number
+                  minimum: 0
+      responses:
+        '200':
+          description: 'Successfully deleted'
+        '400':
+          description: 'ValuationOutput with this id does not exist'
+        '401':
+          description: 'Can only delete ValuationOutput belonging to the authenticated user'
+
+  /hardware-capabilities:
+    get:
+      tags:
+        - pricing
+      responses:
+        '200':
+          description: Returns the capabilities of the connected hardware
+          content:
+            application/json:
+              schema: 
+                $ref: '#/components/schemas/HardwareCapabilitiesResponse'  
+
+  /symbol-from-yahoo?{searchString}:
+    get:
+      tags:
+        - pricing
+      parameters:
+        - in: query
+          name: searchString
+          required: true
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 10
+      responses:
+        '200':
+          description: Returns a list of stock symbols for a given search string
+          content:
+            application/json:
+              schema: 
+                $ref: '#/components/schemas/YahooSymbolSearchResponse'
+
+  /expiration-dates-from-yahoo?{stockSymbol}:
+    get:
+      tags:
+        - pricing
+      parameters:
+        - in: query
+          name: stockSymbol
+          required: true
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 8
+      responses:
+        '200':
+          description: Returns an array of all possible expiration dates for the given stock
+          content:
+            application/json:
+              schema: 
+                $ref: '#/components/schemas/ExpiriesFromYahooResponse'   
+
+  
+  /options-from-yahoo?{stockSymbol}&{expirationDate}:
+    get:
+      tags:
+        - pricing
+      parameters:
+        - in: query
+          name: stockSymbol
+          required: true
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 8
+        - in: query
+          name: expirationDate
+          required: true
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: 'Returns all options for a given stock
+          content:
+            application/json:
+              schema: 
+                $ref: '#/components/schemas/YahooOptionsArrayResponse'
+
+  /option-value-from-yahoo?{stockSymbol}&{expirationDate}&{type}&{strikePrice}:
+    get:
+      tags:
+        - pricing
+      parameters:
+        - in: query
+          name: stockSymbol
+          required: true
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 8
+        - in: query
+          name: expirationDate
+          required: true
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: type
+          required: true
+          schema:
+            type: string
+            enum: ["CALL", "PUT"]
+        - in: query
+          name: strikePrice
+          required: true
+          schema:
+            type: number
+
+      responses:
+        '200':
+          description: Returns the current market price for an option from yahoo finance
+          content:
+            application/json:
+              schema: 
+                $ref: '#/components/schemas/YahooOptionValueResponse'
+
+components:
+  schemas:
+    AuthJWTCookie:
+      type: object
+      properties:
+        id:
+          type: integer
+        username:
+          type: string
+          maxLength: 20
+
+    ClearCookie:
+      type: string
+      example: jwt=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT;
+
+    HardwareCapabilitiesResponse:
+      type: object
+      properties:
+        numberThreads:
+          type: integer
+          minimum: 0
+          description: 'null indicates that the hardware is not accessible'
+        gpu:
+          type: object
+          properties:
+            gpuName:
+              type: string
+            numberOfStreamingProcessors: 
+              type: integer
+          description: 'null indicates that the hardware is not accessible'
+        maxNumberOfPricePaths:
+          type: number
+        maxNumberOfTimesteps:
+          type: number
+
+    LoginStateResponse:
+      type: object
+      properties:
+        isLoggedIn:
+          type: boolean
+
+    ValuationInputRequest:
+      type: object
+      properties:
+        option:
+           $ref: '#/components/schemas/OptionRequest'
+        model:
+          oneOf:
+            - $ref: '#/components/schemas/BlackScholes'
+            - $ref: '#/components/schemas/MonteCarlo'
+            - $ref: '#/components/schemas/BinomialTree'
+        parallelization:
+          oneOf:
+            - $ref: '#/components/schemas/NoParallelization'
+            - $ref: '#/components/schemas/Multithreading'
+            - $ref: '#/components/schemas/CUDA'
+        riskFreeRate:
+          oneOf:
+            - $ref: '#/components/schemas/CustomRiskFreeRateInput'
+            - $ref: '#/components/schemas/TreasuryBillRiskFreeRateInput'
+        volatility:
+          oneOf:
+            - $ref: '#/components/schemas/CustomVolatilityInput'
+            - $ref: '#/components/schemas/ImpliedVolatilityInput'
+            - $ref: '#/components/schemas/HistoricalFixedVolatilityInput'
+            - $ref: '#/components/schemas/HistoricalExpirationVolatilityInput'
+
+    ValuationInputResponse:
+      type: object
+      properties:
+        id:
+          type: number
+          minimum: 0
+        optionId:
+           type: number
+           minimum: 0
+        model:
+          oneOf:
+            - $ref: '#/components/schemas/BlackScholes'
+            - $ref: '#/components/schemas/MonteCarlo'
+            - $ref: '#/components/schemas/BinomialTree'
+        parallelization:
+          oneOf:
+            - $ref: '#/components/schemas/NoParallelization'
+            - $ref: '#/components/schemas/Multithreading'
+            - $ref: '#/components/schemas/CUDA'
+        riskFreeRate:
+          oneOf:
+            - $ref: '#/components/schemas/CustomRiskFreeRateInput'
+            - $ref: '#/components/schemas/TreasuryBillRiskFreeRateInput'
+        volatility:
+          oneOf:
+            - $ref: '#/components/schemas/CustomVolatilityInput'
+            - $ref: '#/components/schemas/ImpliedVolatilityInput'
+            - $ref: '#/components/schemas/HistoricalFixedVolatilityInput'
+            - $ref: '#/components/schemas/HistoricalExpirationVolatilityInput'
+
+    ValuationInputArrayResponse:
+      type: object
+      properties:
+        savedValuationInputs:
+          type: array
+          items:
+            $ref: '#/components/schemas/ValuationInputResponse'
+      
+    ValuationOutputRequest:
+      type: object
+      properties:
+        option:
+           $ref: '#/components/schemas/OptionRequest'
+        optionValue:
+          type: integer
+          minimum: 0
+        riskFreeRate:
+          oneOf:
+            - $ref: '#/components/schemas/CustomRiskFreeRateOutput'
+            - $ref: '#/components/schemas/TreasuryBillRiskFreeRateOutput'
+        volatility:
+          oneOf:
+            - $ref: '#/components/schemas/CustomVolatilityOutput'
+            - $ref: '#/components/schemas/ImpliedVolatilityOutput'
+            - $ref: '#/components/schemas/HistoricalFixedVolatilityOutput'
+            - $ref: '#/components/schemas/HistoricalExpirationVolatilityOutput'
+        model:
+          oneOf:
+            - $ref: '#/components/schemas/BlackScholes'
+            - $ref: '#/components/schemas/MonteCarlo'
+            - $ref: '#/components/schemas/BinomialTree'
+        parallelization:
+          oneOf:
+            - $ref: '#/components/schemas/NoParallelization'
+            - $ref: '#/components/schemas/Multithreading'
+            - $ref: '#/components/schemas/CUDA'
+        parallelExecutionTimeMilliseconds:
+          type: number
+          minimum: 0
+        totalTimeMilliseconds:
+          type: number
+          minimum: 0
+
+    ValuationOutputResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          minimum: 0
+        optionId:
+           type: number
+           minimum: 0
+        optionValue:
+          type: integer
+          minimum: 0
+        riskFreeRate:
+          oneOf:
+            - $ref: '#/components/schemas/CustomRiskFreeRateOutput'
+            - $ref: '#/components/schemas/TreasuryBillRiskFreeRateOutput'
+        volatility:
+          oneOf:
+            - $ref: '#/components/schemas/CustomVolatilityOutput'
+            - $ref: '#/components/schemas/ImpliedVolatilityOutput'
+            - $ref: '#/components/schemas/HistoricalFixedVolatilityOutput'
+            - $ref: '#/components/schemas/HistoricalExpirationVolatilityOutput'
+        model:
+          oneOf:
+            - $ref: '#/components/schemas/BlackScholes'
+            - $ref: '#/components/schemas/MonteCarlo'
+            - $ref: '#/components/schemas/BinomialTree'
+        parallelization:
+          oneOf:
+            - $ref: '#/components/schemas/NoParallelization'
+            - $ref: '#/components/schemas/Multithreading'
+            - $ref: '#/components/schemas/CUDA'
+        parallelExecutionTimeMilliseconds:
+          type: number
+          minimum: 0
+        totalTimeMilliseconds:
+          type: number
+          minimum: 0
+
+    RegisterRequest:
+      type: object
+      properties:
+        username:
+          type: string
+          minLength: 1
+          maxLength: 20
+        password:
+          type: string
+          format: password
+          minLength: 8
+          maxLength: 20
+    
+    RegisterResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+        username:
+          type: string
+          maxLength: 20
+
+    OptionRequest:
+      type: object
+      properties:
+        exerciseStyle:
+          type: string
+          enum: [AMERICAN, EUROPEAN]
+        stockSymbol:
+          type: string
+        strikePrice:
+          type: integer
+          minimum: 0
+          maximum: 10000
+        expirationDate:
+          type: string
+          format: date
+          description: 'Minimum: today, maximum: today + 1825 days (about 5 years)'
+        type:
+          type: string
+          enum: [CALL, PUT]
+
+    OptionsResponseArray:
+      type: object
+      properties:
+        options:
+          type: array
+          items:
+               $ref: '#/components/schemas/OptionResponse'
+
+    OptionResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          minimum: 0
+        exerciseStyle:
+          type: string
+          enum: [AMERICAN, EUROPEAN]
+        stockSymbol:
+          type: string
+        strikePrice:
+          type: integer
+          minimum: 0
+        expirationDate:
+          type: string
+          format: date
+        type:
+          type: string
+          enum: [CALL, PUT]  
+
+    ValuationOutputArrayResponse:
+      type: object
+      properties:
+        savedValuationOutputs:
+          type: array
+          items:
+               $ref: '#/components/schemas/ValuationResponse'
+
+    ValuationResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          minimum: 0
+        optionId:
+          type: integer
+          minimum: 0
+        optionValue:
+          type: integer
+          minimum: 0
+        riskFreeRate:
+          oneOf:
+            - $ref: '#/components/schemas/CustomRiskFreeRateOutput'
+            - $ref: '#/components/schemas/TreasuryBillRiskFreeRateOutput'
+        volatility:
+          oneOf:
+            - $ref: '#/components/schemas/CustomVolatilityOutput'
+            - $ref: '#/components/schemas/ImpliedVolatilityOutput'
+            - $ref: '#/components/schemas/HistoricalFixedVolatilityOutput'
+            - $ref: '#/components/schemas/HistoricalExpirationVolatilityOutput'
+        model:
+          oneOf:
+            - $ref: '#/components/schemas/BlackScholes'
+            - $ref: '#/components/schemas/MonteCarlo'
+            - $ref: '#/components/schemas/BinomialTree'
+        parallelization:
+          oneOf:
+            - $ref: '#/components/schemas/NoParallelization'
+            - $ref: '#/components/schemas/Multithreading'
+            - $ref: '#/components/schemas/CUDA'
+        parallelExecutionTimeMilliseconds:
+          type: number
+          minimum: 0
+        totalTimeMilliseconds:
+          type: number
+          minimum: 0
+
+    BlackScholes:
+      type: object
+      properties:
+        modelName:
+          type: string
+          enum: [BLACKSCHOLES]      
+
+    MonteCarlo:
+      type: object
+      properties:
+        modelName:
+          type: string
+          enum: [MONTECARLO]
+        numberOfPricePaths:
+          type: integer
+          minimum: 1
+
+    BinomialTree:
+      type: object
+      properties:
+        modelName:
+          type: string
+          enum:  [BINOMIALTREE]
+        numberOfTimesteps:
+          type: integer
+          minimum: 1 
+
+    NoParallelization:
+      type: object
+      properties:
+        parallelizationName:
+          type: string 
+          enum: [NOPARALLELIZATION]
+
+    Multithreading:
+      type: object
+      properties:
+        parallelizationName:
+          type: string
+          enum: [MULTITHREADING]
+        numberThreads:
+          type: integer
+          minimum: 1   
+
+    CUDA:
+      type: object
+      properties:
+        parallelizationName:
+          type: string
+          enum: [CUDA]
+        gpu:
+          type: object
+          properties:
+            gpuName:
+              type: string
+            numberOfStreamingProcessors:
+              type: integer
+    
+    CustomRiskFreeRateInput:
+      type: object
+      properties:
+        riskFreeRateName: 
+          type: string
+          enum: ["CUSTOMRISKFREERATE"]
+        riskFreeRate:
+          type: number 
+          minimum: -1
+          maximum: 1
+
+    TreasuryBillRiskFreeRateInput:
+      type: object
+      properties:
+         riskFreeRateName: 
+          type: string
+          enum: ["TREASURYBILLRISKFREERATE"]       
+      description: 'Risk free rate is normalized to [-1;1]'
+
+    CustomRiskFreeRateOutput:
+      type: object
+      properties:
+        riskFreeRateName: 
+          type: string
+          enum: ["CUSTOMRISKFREERATE"]
+        riskFreeRate:
+          type: number 
+
+    TreasuryBillRiskFreeRateOutput:
+      type: object
+      properties:
+         riskFreeRateName: 
+          type: string
+          enum: ["TREASURYBILLRISKFREERATE"]   
+         riskFreeRate:
+          type: number 
+
+    CustomVolatilityInput:
+      type: object
+      properties:
+        volatilityName:
+          type: string
+          enum: ["CUSTOMVOLATILITY"]   
+        volatility:
+          type: number
+          minimum: 0
+          maximum: 1
+
+    ImpliedVolatilityInput:
+      type: object
+      properties:
+        volatilityName:
+          type: string
+          enum: ["IMPLIEDVOLATILITY"]
+      description: 'Volatility is normalized to [0;1]'
+
+    HistoricalFixedVolatilityInput:
+      type: object
+      properties:
+        volatilityName:
+          type: string
+          enum: ["HISTORICALFIXEDVOLATILITY"]   
+        daysBack:
+          type: number
+          minimum: 3
+          maximum: 1825
+      description: 'Volatility is normalized to [0;1]'
+
+
+    HistoricalExpirationVolatilityInput:
+      type: object
+      properties:
+        volatilityName:
+          type: string
+          enum: ["HISTORICALEXPIRATIONVOLATILITY"]   
+      description: 'Volatility is normalized to [0;1]'
+
+    CustomVolatilityOutput:
+      type: object
+      properties:
+        volatilityName:
+          type: string
+          enum: ["CUSTOMVOLATILITY"]   
+        volatility:
+          type: number
+
+    ImpliedVolatilityOutput:
+      type: object
+      properties:
+        volatilityName:
+          type: string
+          enum: ["IMPLIEDVOLATILITY"]
+        volatility:
+          type: number
+
+    HistoricalFixedVolatilityOutput:
+      type: object
+      properties:
+        volatilityName:
+          type: string
+          enum: ["HISTORICALFIXEDVOLATILITY"]   
+        numberOfDays:
+          type: number
+        volatility:
+          type: number
+
+    HistoricalExpirationVolatilityOutput:
+      type: object
+      properties:
+        volatilityName:
+          type: string
+          enum: ["HISTORICALEXPIRATIONVOLATILITY"]  
+        volatility:
+          type: number
+
+    OptionValueRequest:
+      type: object
+      properties:
+        option:
+           $ref: '#/components/schemas/OptionRequest'
+        model:
+          oneOf:
+            - $ref: '#/components/schemas/BlackScholes'
+            - $ref: '#/components/schemas/MonteCarlo'
+            - $ref: '#/components/schemas/BinomialTree'
+        parallelization:
+          oneOf:
+            - $ref: '#/components/schemas/NoParallelization'
+            - $ref: '#/components/schemas/Multithreading'
+            - $ref: '#/components/schemas/CUDA'
+        volatility:
+          oneOf:
+            - $ref: '#/components/schemas/CustomVolatilityInput'
+            - $ref: '#/components/schemas/ImpliedVolatilityInput'
+            - $ref: '#/components/schemas/HistoricalFixedVolatilityInput'
+            - $ref: '#/components/schemas/HistoricalExpirationVolatilityInput'
+        riskFreeRate:
+          oneOf:
+            - $ref: '#/components/schemas/CustomRiskFreeRateInput'
+            - $ref: '#/components/schemas/TreasuryBillRiskFreeRateInput'
+      required:
+        - option
+        - model
+        - parallelization
+
+    JobResult:
+      type: object
+      properties:
+        jobId: 
+          type: string
+          format: UUID
+        secret:
+          type: string
+
+    StaticOptionResult:
+      type: object
+      properties:
+        optionValue:
+          type: integer
+          minimum: 0
+        stockPrice:
+          type: number
+          description: ''
+        riskFreeRate:
+          type: number
+          description: 'As decimal'
+        volatility:
+          type: number
+          minimum: 0
+        parallelExecutionTimeMilliseconds:
+          type: number
+          minimum: 0
+
+    ProfitSpotterRequest:
+      type: object
+      properties:
+        stockSymbol:
+          type: string
+        precision:
+          type: string
+          enum: ["SINGLE", "DOUBLE"]
+        parallelization:
+          oneOf:
+            - $ref: '#/components/schemas/Multithreading'
+            - $ref: '#/components/schemas/CUDA'
+        volatility:
+          oneOf:
+            - $ref: '#/components/schemas/CustomVolatilityInput'
+            - $ref: '#/components/schemas/ImpliedVolatilityInput'
+            - $ref: '#/components/schemas/HistoricalFixedVolatilityInput'
+            - $ref: '#/components/schemas/HistoricalExpirationVolatilityInput'
+        riskFreeRate:
+          oneOf:
+            - $ref: '#/components/schemas/CustomRiskFreeRateInput'
+            - $ref: '#/components/schemas/TreasuryBillRiskFreeRateInput'
+      required:
+        - stockSymbol
+        - precision
+        - parallelization
+        - volatility
+
+    ProfitSpotterOptionResponse:
+      type: object
+      properties:
+        expirationDate:
+          type: string
+          format: date
+        type:
+          type: string
+          enum: ["CALL", "PUT"]
+        strikePrice:
+          type: number
+          minimum: 0
+        optionValueFromYahoo:
+          type: number
+          minimum: 0
+        optionValue:
+          type: number
+          minimum: 0
+        valueDifference:
+          type: number
+          minimum: 0
+        yahooLink:
+          type: string
+
+    ProfitSpotterResponse:
+      type: object
+      properties:
+        options:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProfitSpotterOptionResponse'
+        riskFreeRate:
+          type: number
+          description: 'As decimal'
+        volatility:
+          type: array
+          items:
+            type:
+              number
+      
+        parallelExecutionTimeMilliseconds:
+          type: number
+          minimum: 0        
+
+    ExpiriesFromYahooResponse:
+      type: object
+      properties:
+        expirationDates:
+          type: array
+          items:
+            type:
+              string
+            format:
+              date
+
+    YahooSymbolSearchResponse:
+      type: object
+      properties:
+        stockSymbolsFound:
+          type: array
+          items:
+            type: object
+            properties:
+              symbol:
+                type: string
+              name:
+                type: string
+
+    YahooOptionsArrayResponse:
+      type: object
+      properties:
+        yahooOptions:
+          type: array
+          items:
+            $ref: '#/components/schemas/YahooOptionResponse'
+
+    YahooOptionResponse:
+      type: object
+      properties:
+        stockSymbol:
+          type: string
+        strikePrice:
+          type: number
+        expirationDate:
+          type: string
+          format: date
+        type:
+          type: string
+          enum:  [CALL, PUT]
+
+    YahooOptionValueResponse:
+      type: object
+      properties:
+        optionValueFromYahoo:
+          type: number
